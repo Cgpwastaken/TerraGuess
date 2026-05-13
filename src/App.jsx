@@ -16,8 +16,9 @@ function pickRandom() {
 }
 
 export default function App() {
-  const [target, setTarget] = useState(pickRandom)
-  const [guesses, setGuesses] = useState([])
+  const [target, setTarget]           = useState(pickRandom)
+  const [guesses, setGuesses]         = useState([])
+  const [isGlobe, setIsGlobe]         = useState(false)
   const [showInstructions, setShowInstructions] = useState(true)
 
   const won    = useMemo(() => guesses.some(g => g.isCorrect), [guesses])
@@ -32,7 +33,7 @@ export default function App() {
     setGuesses(prev => {
       if (prev.some(g => g.country.id === country.id)) return prev
       const isCorrect = country.id === target.id
-      const distance = isCorrect
+      const distance  = isCorrect
         ? 0
         : haversine(target.lat, target.lng, country.lat, country.lng)
       return [...prev, { country, distance, isCorrect }]
@@ -48,52 +49,92 @@ export default function App() {
   const guessesLeft = MAX_GUESSES - wrongCount
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
-      {/* Header */}
-      <header className="text-center pt-6 pb-3 px-4 flex items-center justify-center gap-3">
-        <h1 className="text-4xl font-black tracking-tight text-white">TerraGuess</h1>
-        <button
-          onClick={() => setShowInstructions(true)}
-          title="How to play"
-          className="w-7 h-7 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white text-sm font-bold transition-colors flex items-center justify-center cursor-pointer flex-shrink-0"
-        >
-          ?
-        </button>
+    <div className="min-h-screen flex flex-col" style={{ background: '#0f172a', color: '#f1f5f9' }}>
+
+      {/* ── Header ── */}
+      <header className="flex items-center justify-between px-5 pt-6 pb-4">
+        <div className="flex items-center gap-3">
+          <h1 className="text-4xl font-black tracking-tight"
+              style={{ background: 'linear-gradient(135deg,#4ade80,#38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            TerraGuess
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Globe / Flat toggle */}
+          <button
+            onClick={() => setIsGlobe(g => !g)}
+            title={isGlobe ? 'Switch to flat map' : 'Switch to globe'}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer"
+            style={{
+              background: isGlobe ? '#1d4ed8' : '#1e293b',
+              color: isGlobe ? '#bfdbfe' : '#94a3b8',
+              border: `1px solid ${isGlobe ? '#3b82f6' : '#334155'}`,
+            }}
+          >
+            <span className="text-base">{isGlobe ? '🗺️' : '🌐'}</span>
+            <span className="hidden sm:inline">{isGlobe ? 'Flat' : 'Globe'}</span>
+          </button>
+
+          {/* How to play */}
+          <button
+            onClick={() => setShowInstructions(true)}
+            title="How to play"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
+            style={{ background: '#1e293b', color: '#94a3b8', border: '1px solid #334155' }}
+          >
+            ?
+          </button>
+        </div>
       </header>
 
-      <p className="text-gray-400 text-sm text-center pb-3">
-        Guess the mystery country — hotter colours mean closer
-      </p>
-
-      {/* Map */}
-      <div className="flex-1 px-4 pb-2">
-        <WorldMap guesses={guesses} won={won} failed={failed} target={target} />
-      </div>
-
-      {/* Guess counter */}
-      <div className="text-center text-xs pb-1">
-        {guesses.length === 0 ? (
-          <span className="text-gray-500">No guesses yet — type a country to start</span>
-        ) : gameOver ? null : (
-          <span className={guessesLeft <= 2 ? 'text-red-400 font-semibold' : 'text-gray-500'}>
-            {guesses.length} {guesses.length === 1 ? 'guess' : 'guesses'} —{' '}
-            {guessesLeft} remaining
-          </span>
+      {/* ── Search bar (above the map) ── */}
+      <div className="px-4 pb-3 max-w-2xl mx-auto w-full">
+        {!gameOver ? (
+          <>
+            <GuessInput onGuess={handleGuess} guesses={guesses} />
+            <div className="mt-2 text-center text-sm">
+              {guesses.length === 0 ? (
+                <span className="text-slate-500">Type a country name to start guessing</span>
+              ) : (
+                <span className={guessesLeft <= 2 ? 'text-red-400 font-semibold' : 'text-slate-500'}>
+                  {guesses.length} {guesses.length === 1 ? 'guess' : 'guesses'} used
+                  {' · '}
+                  <span className={guessesLeft <= 2 ? 'text-red-400 font-bold' : ''}>
+                    {guessesLeft} remaining
+                  </span>
+                </span>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="text-center text-slate-500 text-sm py-2">
+            {won ? '🎉 You found it!' : '😔 Better luck next time!'}
+          </div>
         )}
       </div>
 
-      {/* Input + guess list */}
-      <div className="px-4 max-w-xl mx-auto w-full">
-        {!gameOver && <GuessInput onGuess={handleGuess} guesses={guesses} />}
-        <GuessList guesses={guesses} />
+      {/* ── Map ── */}
+      <div className="px-4 pb-4 flex-1">
+        <WorldMap guesses={guesses} won={won} failed={failed} target={target} isGlobe={isGlobe} />
       </div>
 
-      {/* Footer */}
-      <footer className="text-center text-gray-600 text-xs py-4 mt-auto">
-        Made by Veer Aditya Mirza
+      {/* ── Guess history ── */}
+      {guesses.length > 0 && (
+        <div className="px-4 pb-4 max-w-2xl mx-auto w-full">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+            Guesses
+          </p>
+          <GuessList guesses={guesses} />
+        </div>
+      )}
+
+      {/* ── Footer ── */}
+      <footer className="text-center text-slate-600 text-sm py-5 mt-auto">
+        Made by <span className="text-slate-400 font-medium">Veer Aditya Mirza</span>
       </footer>
 
-      {/* Modals */}
+      {/* ── Modals ── */}
       {showInstructions && <InstructionsModal onClose={() => setShowInstructions(false)} />}
       {won    && <WinScreen  guesses={guesses} onPlayAgain={handlePlayAgain} />}
       {failed && <FailScreen target={target}   onPlayAgain={handlePlayAgain} />}
