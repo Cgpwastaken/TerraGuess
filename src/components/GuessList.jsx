@@ -11,10 +11,13 @@ const MAX_DIST = 20000
 export default function GuessList({ guesses }) {
   if (guesses.length === 0) return null
 
+  // Sort by distance — closest at top. Correct guess (distance 0) sits first.
+  const sorted = [...guesses].sort((a, b) => a.distance - b.distance)
+
   return (
     <div className="mt-4 flex flex-col gap-2 max-h-64 overflow-y-auto pr-0.5"
          style={{ scrollbarWidth: 'thin', scrollbarColor: '#334155 transparent' }}>
-      {guesses.map((g, i) => {
+      {sorted.map((g, i) => {
         const pct = g.isCorrect ? 100 : Math.max(4, Math.round((1 - g.distance / MAX_DIST) * 100))
         const color = g.isCorrect ? '#22c55e' : getColor(g.distance)
 

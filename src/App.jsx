@@ -1,41 +1,61 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { countries } from './data/countries'
-import { haversine } from './utils/distance'
+import { countryDistance } from './utils/distance'
+import { getContinent } from './utils/continents'
 import WorldMap from './components/WorldMap'
 import GuessInput from './components/GuessInput'
 import GuessList from './components/GuessList'
 import WinScreen from './components/WinScreen'
 import FailScreen from './components/FailScreen'
 import InstructionsModal from './components/InstructionsModal'
+import WarningModal from './components/WarningModal'
 import './index.css'
 
 const MAX_GUESSES = 7
+const WARNING_AT  = 5       // wrong-guess count that triggers "Only 2 left" popup
+const GIVE_UP_AT  = 3       // wrong-guess count after which "Give up" appears
 
 function pickRandom() {
   return countries[Math.floor(Math.random() * countries.length)]
 }
 
-export default function App() {
-  const [target, setTarget]           = useState(pickRandom)
-  const [guesses, setGuesses]         = useState([])
-  const [isGlobe, setIsGlobe]         = useState(false)
-  const [showInstructions, setShowInstructions] = useState(true)
+function buildHint(target) {
+  const continent = getContinent(target.lat, target.lng)
+  const letter = target.name[0].toUpperCase()
+  return `It's in ${continent} and starts with the letter "${letter}".`
+}
 
-  const won    = useMemo(() => guesses.some(g => g.isCorrect), [guesses])
-  const failed = useMemo(
-    () => !won && guesses.filter(g => !g.isCorrect).length >= MAX_GUESSES,
-    [won, guesses]
+export default function App() {
+  const [target,    setTarget]    = useState(pickRandom)
+  const [guesses,   setGuesses]   = useState([])
+  const [isGlobe,   setIsGlobe]   = useState(false)
+  const [gaveUp,    setGaveUp]    = useState(false)
+  const [showInstructions, setShowInstructions] = useState(true)
+  const [showWarning, setShowWarning] = useState(false)
+  const [warningSeen, setWarningSeen] = useState(false)
+
+  const wrongCount = useMemo(() => guesses.filter(g => !g.isCorrect).length, [guesses])
+  const won        = useMemo(() => guesses.some(g => g.isCorrect), [guesses])
+  const failed     = useMemo(
+    () => !won && (gaveUp || wrongCount >= MAX_GUESSES),
+    [won, gaveUp, wrongCount]
   )
   const gameOver = won || failed
+
+  // Show the "Only 2 left" warning exactly once, right after the 5th wrong guess
+  useEffect(() => {
+    if (wrongCount === WARNING_AT && !warningSeen && !gameOver) {
+      setShowWarning(true)
+      setWarningSeen(true)
+    }
+  }, [wrongCount, warningSeen, gameOver])
 
   const handleGuess = useCallback((country) => {
     if (!country) return
     setGuesses(prev => {
       if (prev.some(g => g.country.id === country.id)) return prev
       const isCorrect = country.id === target.id
-      const distance  = isCorrect
-        ? 0
-        : haversine(target.lat, target.lng, country.lat, country.lng)
+      const distance  = isCorrect ? 0 : countryDistance(target, country)
       return [...prev, { country, distance, isCorrect }]
     })
   }, [target])
@@ -43,25 +63,29 @@ export default function App() {
   const handlePlayAgain = useCallback(() => {
     setTarget(pickRandom())
     setGuesses([])
+    setGaveUp(false)
+    setWarningSeen(false)
+    setShowWarning(false)
   }, [])
 
-  const wrongCount  = guesses.filter(g => !g.isCorrect).length
+  const handleGiveUp = useCallback(() => {
+    setGaveUp(true)
+  }, [])
+
   const guessesLeft = MAX_GUESSES - wrongCount
+  const canGiveUp   = !gameOver && wrongCount >= GIVE_UP_AT
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0f172a', color: '#f1f5f9' }}>
 
-      {/* ── Header ── */}
+      {/* Header */}
       <header className="flex items-center justify-between px-5 pt-6 pb-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-4xl font-black tracking-tight"
-              style={{ background: 'linear-gradient(135deg,#4ade80,#38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            TerraGuess
-          </h1>
-        </div>
+        <h1 className="text-4xl font-black tracking-tight"
+            style={{ background: 'linear-gradient(135deg,#4ade80,#38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          TerraGuess
+        </h1>
 
         <div className="flex items-center gap-2">
-          {/* Globe / Flat toggle */}
           <button
             onClick={() => setIsGlobe(g => !g)}
             title={isGlobe ? 'Switch to flat map' : 'Switch to globe'}
@@ -76,7 +100,6 @@ export default function App() {
             <span className="hidden sm:inline">{isGlobe ? 'Flat' : 'Globe'}</span>
           </button>
 
-          {/* How to play */}
           <button
             onClick={() => setShowInstructions(true)}
             title="How to play"
@@ -88,56 +111,76 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── Search bar (above the map) ── */}
+      {/* Search bar */}
       <div className="px-4 pb-3 max-w-2xl mx-auto w-full">
         {!gameOver ? (
           <>
             <GuessInput onGuess={handleGuess} guesses={guesses} />
-            <div className="mt-2 text-center text-sm">
-              {guesses.length === 0 ? (
-                <span className="text-slate-500">Type a country name to start guessing</span>
-              ) : (
-                <span className={guessesLeft <= 2 ? 'text-red-400 font-semibold' : 'text-slate-500'}>
-                  {guesses.length} {guesses.length === 1 ? 'guess' : 'guesses'} used
-                  {' · '}
-                  <span className={guessesLeft <= 2 ? 'text-red-400 font-bold' : ''}>
-                    {guessesLeft} remaining
-                  </span>
-                </span>
+
+            {/* Counter row + give-up button */}
+            <div className="mt-2 flex items-center justify-between text-sm gap-3 px-1">
+              <span className={guessesLeft <= 2 ? 'text-red-400 font-semibold' : 'text-slate-500'}>
+                {guesses.length === 0
+                  ? 'Type a country name to start guessing'
+                  : (
+                    <>
+                      {guesses.length} {guesses.length === 1 ? 'guess' : 'guesses'} used
+                      <span className="text-slate-600 mx-1.5">·</span>
+                      <span className={guessesLeft <= 2 ? 'text-red-400 font-bold' : ''}>
+                        {guessesLeft} remaining
+                      </span>
+                    </>
+                  )}
+              </span>
+
+              {canGiveUp && (
+                <button
+                  onClick={handleGiveUp}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-red-300 hover:text-white bg-red-950/60 hover:bg-red-700 border border-red-800 hover:border-red-500 transition-colors cursor-pointer flex items-center gap-1.5 flex-shrink-0"
+                  title="Reveal the answer"
+                >
+                  🏳️ Give up
+                </button>
               )}
             </div>
           </>
         ) : (
           <div className="text-center text-slate-500 text-sm py-2">
-            {won ? '🎉 You found it!' : '😔 Better luck next time!'}
+            {won ? '🎉 You found it!' : gaveUp ? '🏳️ You gave up.' : '😔 Better luck next time!'}
           </div>
         )}
       </div>
 
-      {/* ── Map ── */}
+      {/* Map */}
       <div className="px-4 pb-4 flex-1">
         <WorldMap guesses={guesses} won={won} failed={failed} target={target} isGlobe={isGlobe} />
       </div>
 
-      {/* ── Guess history ── */}
+      {/* Guess list */}
       {guesses.length > 0 && (
         <div className="px-4 pb-4 max-w-2xl mx-auto w-full">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-            Guesses
+            Guesses (closest first)
           </p>
           <GuessList guesses={guesses} />
         </div>
       )}
 
-      {/* ── Footer ── */}
+      {/* Footer */}
       <footer className="text-center text-slate-600 text-sm py-5 mt-auto">
         Made by <span className="text-slate-400 font-medium">Veer Aditya Mirza</span>
       </footer>
 
-      {/* ── Modals ── */}
+      {/* Modals */}
       {showInstructions && <InstructionsModal onClose={() => setShowInstructions(false)} />}
-      {won    && <WinScreen  guesses={guesses} onPlayAgain={handlePlayAgain} />}
-      {failed && <FailScreen target={target}   onPlayAgain={handlePlayAgain} />}
+      {showWarning && (
+        <WarningModal
+          hint={buildHint(target)}
+          onClose={() => setShowWarning(false)}
+        />
+      )}
+      {won    && <WinScreen  guesses={guesses} target={target} onPlayAgain={handlePlayAgain} />}
+      {failed && <FailScreen target={target}   onPlayAgain={handlePlayAgain} gaveUp={gaveUp} />}
     </div>
   )
 }

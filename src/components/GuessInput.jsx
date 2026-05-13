@@ -59,25 +59,20 @@ export default function GuessInput({ onGuess, guesses, disabled }) {
 
   return (
     <div className="relative">
-      <div className="relative">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none select-none">
-          🔍
-        </span>
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          disabled={disabled}
-          onChange={e => { setInput(e.target.value); setOpen(true); setActiveIdx(0) }}
-          onFocus={() => input && setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a country name…"
-          autoComplete="off"
-          spellCheck={false}
-          className="w-full bg-slate-800 text-white placeholder-slate-500 pl-11 pr-4 py-4 rounded-2xl border-2 border-slate-600 focus:outline-none focus:border-blue-500 transition-colors text-base font-medium disabled:opacity-50"
-        />
-      </div>
+      <input
+        ref={inputRef}
+        type="text"
+        value={input}
+        disabled={disabled}
+        onChange={e => { setInput(e.target.value); setOpen(true); setActiveIdx(0) }}
+        onFocus={() => input && setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onKeyDown={handleKeyDown}
+        placeholder="Type a country name…"
+        autoComplete="off"
+        spellCheck={false}
+        className="w-full bg-slate-800 text-white placeholder-slate-500 px-5 py-4 rounded-2xl border-2 border-slate-600 focus:outline-none focus:border-blue-500 transition-colors text-base font-medium disabled:opacity-50"
+      />
 
       {open && suggestions.length > 0 && (
         <ul className="absolute z-30 w-full mt-2 bg-slate-800 border border-slate-600 rounded-2xl overflow-hidden shadow-2xl">

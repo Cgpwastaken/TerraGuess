@@ -1,25 +1,53 @@
-export default function WinScreen({ guesses, onPlayAgain }) {
-  const target = guesses.find(g => g.isCorrect)?.country
+export default function WinScreen({ guesses, target, onPlayAgain }) {
   const count = guesses.length
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 border border-gray-600 rounded-2xl p-8 text-center max-w-sm w-full shadow-2xl">
-        <div className="text-6xl mb-4 select-none">🌍</div>
-        <h2 className="text-2xl font-bold text-white mb-2">You got it!</h2>
-        <p className="text-gray-300 mb-1">
-          The answer was{' '}
-          <span className="text-green-400 font-bold">{target?.name}</span>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        background:
+          'radial-gradient(circle at center, rgba(34,197,94,0.55) 0%, rgba(0,0,0,0.88) 70%)',
+        backdropFilter: 'blur(10px)',
+      }}
+    >
+      <div
+        className="rounded-3xl px-10 py-12 text-center max-w-lg w-full shadow-2xl"
+        style={{
+          background: 'linear-gradient(160deg, #16a34a 0%, #15803d 55%, #14532d 100%)',
+          border: '3px solid #4ade80',
+          boxShadow:
+            '0 25px 80px -10px rgba(34,197,94,0.5), inset 0 1px 0 rgba(255,255,255,0.15)',
+        }}
+      >
+        <div className="text-8xl mb-5 select-none" style={{ animation: 'fadeSlideIn 0.5s ease both' }}>🎉</div>
+
+        <h2 className="text-5xl font-black text-white tracking-tight mb-3"
+            style={{ textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+          YOU WIN!
+        </h2>
+
+        <p className="text-xl text-green-50 mb-2">
+          The answer was
         </p>
-        <p className="text-gray-400 mb-8">
-          Solved in{' '}
-          <span className="text-white font-bold">
-            {count} {count === 1 ? 'guess' : 'guesses'}
-          </span>
+        <p className="text-3xl font-black text-white mb-6 select-text"
+           style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+          {target?.name ?? '—'}
         </p>
+
+        <div className="bg-white/15 backdrop-blur rounded-2xl px-6 py-4 mb-8 border border-white/20">
+          <p className="text-green-100 text-sm uppercase tracking-wider font-semibold mb-1">
+            Solved in
+          </p>
+          <p className="text-white text-4xl font-black">
+            {count} <span className="text-xl font-bold text-green-100">
+              {count === 1 ? 'guess' : 'guesses'}
+            </span>
+          </p>
+        </div>
+
         <button
           onClick={onPlayAgain}
-          className="w-full bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition-colors cursor-pointer"
+          className="w-full bg-white text-green-700 font-black text-xl py-4 rounded-2xl hover:bg-green-50 active:scale-[0.98] transition-all cursor-pointer shadow-lg"
         >
           Play Again
         </button>

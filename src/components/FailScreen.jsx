@@ -1,19 +1,46 @@
-export default function FailScreen({ target, onPlayAgain }) {
+export default function FailScreen({ target, onPlayAgain, gaveUp }) {
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 border border-gray-600 rounded-2xl p-8 text-center max-w-sm w-full shadow-2xl">
-        <div className="text-6xl mb-4 select-none">😔</div>
-        <h2 className="text-2xl font-bold text-white mb-2">Better luck next time!</h2>
-        <p className="text-gray-300 mb-1">
-          The answer was{' '}
-          <span className="text-green-400 font-bold">{target.name}</span>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        background:
+          'radial-gradient(circle at center, rgba(220,38,38,0.55) 0%, rgba(0,0,0,0.88) 70%)',
+        backdropFilter: 'blur(10px)',
+      }}
+    >
+      <div
+        className="rounded-3xl px-10 py-12 text-center max-w-lg w-full shadow-2xl"
+        style={{
+          background: 'linear-gradient(160deg, #b91c1c 0%, #991b1b 55%, #7f1d1d 100%)',
+          border: '3px solid #ef4444',
+          boxShadow:
+            '0 25px 80px -10px rgba(220,38,38,0.55), inset 0 1px 0 rgba(255,255,255,0.15)',
+        }}
+      >
+        <div className="text-8xl mb-5 select-none">{gaveUp ? '🏳️' : '💀'}</div>
+
+        <h2 className="text-5xl font-black text-white tracking-tight mb-3"
+            style={{ textShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+          {gaveUp ? 'YOU GAVE UP' : 'YOU LOST'}
+        </h2>
+
+        <p className="text-xl text-red-100 mb-2">
+          {gaveUp ? 'No worries — try another!' : 'You used all 7 guesses.'}
         </p>
-        <p className="text-gray-500 text-sm mb-8">
-          You used all 7 guesses without finding it.
-        </p>
+
+        <div className="bg-white/15 backdrop-blur rounded-2xl px-6 py-5 my-8 border border-white/20">
+          <p className="text-red-100 text-sm uppercase tracking-wider font-semibold mb-2">
+            The answer was
+          </p>
+          <p className="text-white text-4xl font-black select-text"
+             style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+            {target.name}
+          </p>
+        </div>
+
         <button
           onClick={onPlayAgain}
-          className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors cursor-pointer"
+          className="w-full bg-white text-red-700 font-black text-xl py-4 rounded-2xl hover:bg-red-50 active:scale-[0.98] transition-all cursor-pointer shadow-lg"
         >
           Play Again
         </button>
