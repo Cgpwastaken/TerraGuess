@@ -60,12 +60,17 @@ export default function WorldMap({ guesses, won, failed, target, isGlobe }) {
     setIsDragging(false)
   }
 
-  // Wheel listener (must be non-passive to call preventDefault)
+  // Wheel listener — only zooms the globe when Ctrl/Cmd is held.
+  // Plain wheel / trackpad scroll bubbles up so the page scrolls normally
+  // (so the user can scroll past the map to the guess list below).
+  // Mac trackpad pinch-to-zoom also fires wheel events with ctrlKey=true,
+  // which naturally maps to zoom here.
   useEffect(() => {
     if (!isGlobe) return
     const el = containerRef.current
     if (!el) return
     const onWheel = (e) => {
+      if (!e.ctrlKey && !e.metaKey) return
       e.preventDefault()
       setGlobeScale(s => Math.max(140, Math.min(900, s - e.deltaY * 0.6)))
     }
@@ -160,10 +165,10 @@ export default function WorldMap({ guesses, won, failed, target, isGlobe }) {
         <div className="absolute top-3 left-3 flex flex-col gap-1 bg-slate-900/90 backdrop-blur rounded-xl p-1 border border-slate-700 shadow-lg">
           <button onClick={() => setGlobeScale(s => Math.min(900, s + 70))}
                   className="w-9 h-9 rounded-lg hover:bg-slate-700 text-white font-bold text-xl flex items-center justify-center transition-colors"
-                  title="Zoom in">+</button>
+                  title="Zoom in (or Ctrl/⌘ + scroll)">+</button>
           <button onClick={() => setGlobeScale(s => Math.max(140, s - 70))}
                   className="w-9 h-9 rounded-lg hover:bg-slate-700 text-white font-bold text-xl flex items-center justify-center transition-colors"
-                  title="Zoom out">−</button>
+                  title="Zoom out (or Ctrl/⌘ + scroll)">−</button>
           <button onClick={resetGlobe}
                   className="w-9 h-9 rounded-lg hover:bg-slate-700 text-white text-sm flex items-center justify-center transition-colors"
                   title="Reset view">⟲</button>

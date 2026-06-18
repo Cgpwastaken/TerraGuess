@@ -42,18 +42,39 @@ export default function GuessInput({ onGuess, guesses, disabled }) {
   }
 
   const handleKeyDown = (e) => {
-    if (!open || suggestions.length === 0) return
+    // When the autocomplete dropdown is open, arrow keys navigate it.
+    if (open && suggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setActiveIdx(i => Math.min(i + 1, suggestions.length - 1))
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setActiveIdx(i => Math.max(i - 1, 0))
+        return
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        handleSelect(suggestions[activeIdx] ?? suggestions[0])
+        return
+      }
+      if (e.key === 'Escape') {
+        setOpen(false)
+        e.target.blur()
+        return
+      }
+    }
+    // Dropdown closed / empty input → let arrow keys scroll the page so the
+    // user can reach the guess list below without having to click out first.
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIdx(i => Math.min(i + 1, suggestions.length - 1))
+      window.scrollBy({ top: 120, behavior: 'smooth' })
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setActiveIdx(i => Math.max(i - 1, 0))
-    } else if (e.key === 'Enter') {
-      e.preventDefault()
-      handleSelect(suggestions[activeIdx] ?? suggestions[0])
+      window.scrollBy({ top: -120, behavior: 'smooth' })
     } else if (e.key === 'Escape') {
-      setOpen(false)
+      e.target.blur()
     }
   }
 
