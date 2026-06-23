@@ -13,7 +13,7 @@ function fmtDist(km) {
 const DEFAULT_ROTATION = [-15, -25, 0]
 const DEFAULT_GLOBE_SCALE = 230
 
-export default function WorldMap({ guesses, won, failed, target, isGlobe }) {
+export default function WorldMap({ guesses, won, failed, target, isGlobe, winPulse }) {
   const [tooltip, setTooltip] = useState(null)
   const [rotation, setRotation] = useState(DEFAULT_ROTATION)
   const [globeScale, setGlobeScale] = useState(DEFAULT_GLOBE_SCALE)
@@ -103,6 +103,7 @@ export default function WorldMap({ guesses, won, failed, target, isGlobe }) {
               fill={baseFill}
               stroke="#1e293b"
               strokeWidth={0.35}
+              className={isTgt && winPulse ? 'rsm-win-pulse' : undefined}
               style={{
                 default: { outline: 'none' },
                 hover:   { outline: 'none', fill: hoverFill, cursor: 'default' },

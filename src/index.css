@@ -2,13 +2,58 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Theme tokens. Default to light; the surrounding UI (shell, header, inputs,
+   result lists, footer) reads these so it adapts to the system colour scheme.
+   The map itself keeps its own palette. */
+:root {
+  --bg: #eef2f7;
+  --surface: #ffffff;
+  --surface-2: #e2e8f0;
+  --border: #cbd5e1;
+  --text: #0f172a;
+  --text-muted: #475569;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface-2: #334155;
+    --border: #334155;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+  }
+}
+
 body {
-  background: #0f172a;
-  color: #f1f5f9;
+  background: var(--bg);
+  color: var(--text);
   font-family: system-ui, -apple-system, sans-serif;
 }
 
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulsing green glow on the answer country before the win modal appears */
+@keyframes winPulse {
+  0%, 100% { fill: #22c55e; filter: drop-shadow(0 0 1px rgba(74,222,128,0.6)); }
+  50%      { fill: #4ade80; filter: drop-shadow(0 0 7px rgba(74,222,128,1)); }
+}
+.rsm-win-pulse {
+  animation: winPulse 0.9s ease-in-out infinite;
+}
+
+/* Modal fade-in used by the win screen so it eases in after the pulse */
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Transient "Closer!/Colder" warmer-colder feedback label */
+@keyframes warmerColder {
+  0%   { opacity: 0; transform: translateY(4px) scale(0.96); }
+  15%  { opacity: 1; transform: translateY(0) scale(1); }
+  75%  { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-4px) scale(0.98); }
 }

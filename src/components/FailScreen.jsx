@@ -1,4 +1,7 @@
-export default function FailScreen({ target, onPlayAgain, gaveUp }) {
+import RoundSummary from './RoundSummary'
+import ShareResults from './ShareResults'
+
+export default function FailScreen({ target, onPlayAgain, gaveUp, guesses = [], shareText }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -9,7 +12,7 @@ export default function FailScreen({ target, onPlayAgain, gaveUp }) {
       }}
     >
       <div
-        className="rounded-3xl px-10 py-12 text-center max-w-lg w-full shadow-2xl"
+        className="rounded-3xl px-8 py-10 text-center max-w-lg w-full shadow-2xl max-h-[92vh] overflow-y-auto"
         style={{
           background: 'linear-gradient(160deg, #b91c1c 0%, #991b1b 55%, #7f1d1d 100%)',
           border: '3px solid #ef4444',
@@ -28,7 +31,7 @@ export default function FailScreen({ target, onPlayAgain, gaveUp }) {
           {gaveUp ? 'No worries — try another!' : 'You used all 7 guesses.'}
         </p>
 
-        <div className="bg-white/15 backdrop-blur rounded-2xl px-6 py-5 my-8 border border-white/20">
+        <div className="bg-white/15 backdrop-blur rounded-2xl px-6 py-5 my-5 border border-white/20">
           <p className="text-red-100 text-sm uppercase tracking-wider font-semibold mb-2">
             The answer was
           </p>
@@ -37,6 +40,15 @@ export default function FailScreen({ target, onPlayAgain, gaveUp }) {
             {target.name}
           </p>
         </div>
+
+        {/* Full round breakdown with per-guess scores + cumulative total */}
+        {guesses.length > 0 && (
+          <div className="text-left mb-5">
+            <RoundSummary guesses={guesses} final />
+          </div>
+        )}
+
+        {shareText && <ShareResults shareText={shareText} accent="#b91c1c" />}
 
         <button
           onClick={onPlayAgain}

@@ -19,3 +19,26 @@ export function getContinent(lat, lng) {
   // Default: Asia
   return 'Asia'
 }
+
+// Authoritative country→continent overrides (keyed by ISO 3166-1 numeric id),
+// following the UN geoscheme. Transcontinental and edge-case countries are
+// listed explicitly here because the coordinate boxes above cannot resolve
+// them reliably. Convention (per project spec):
+//   Cyprus = Europe, Turkey = Asia, Russia = Europe, Georgia = Asia,
+//   Armenia = Asia, Azerbaijan = Asia, Kazakhstan = Asia, Egypt = Africa.
+const CONTINENT_OVERRIDES = {
+  196: 'Europe',  // Cyprus
+  792: 'Asia',    // Turkey
+  643: 'Europe',  // Russia
+  268: 'Asia',    // Georgia
+  51:  'Asia',    // Armenia
+  31:  'Asia',    // Azerbaijan
+  398: 'Asia',    // Kazakhstan
+  818: 'Africa',  // Egypt
+}
+
+// Continent for a full country object: prefer the explicit override table,
+// otherwise fall back to the coordinate-box heuristic above.
+export function getContinentForCountry(country) {
+  return CONTINENT_OVERRIDES[country.id] ?? getContinent(country.lat, country.lng)
+}

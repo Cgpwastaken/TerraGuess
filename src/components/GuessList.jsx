@@ -1,4 +1,6 @@
 import { getColor, getLabel } from '../utils/colors'
+import { compass } from '../utils/bearing'
+import DirectionArrow from './DirectionArrow'
 
 function fmt(km) {
   if (km === 0)   return '0 km'
@@ -24,8 +26,8 @@ export default function GuessList({ guesses }) {
         return (
           <div
             key={g.country.id}
-            className="relative bg-slate-800 rounded-xl px-4 py-3 overflow-hidden border border-slate-700/50"
-            style={{ animation: 'fadeSlideIn 0.25s ease both', animationDelay: `${i * 0.02}s` }}
+            className="relative rounded-xl px-4 py-3 overflow-hidden border"
+            style={{ background: 'var(--surface)', borderColor: 'var(--border)', animation: 'fadeSlideIn 0.25s ease both', animationDelay: `${i * 0.02}s` }}
           >
             {/* Background distance bar */}
             <div
@@ -35,7 +37,7 @@ export default function GuessList({ guesses }) {
 
             <div className="relative flex items-center gap-3">
               {/* Guess number */}
-              <span className="text-slate-500 text-xs font-mono w-5 text-right flex-shrink-0">
+              <span className="text-xs font-mono w-5 text-right flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
                 {i + 1}
               </span>
 
@@ -43,18 +45,35 @@ export default function GuessList({ guesses }) {
               <div className="w-3.5 h-3.5 rounded-full flex-shrink-0 ring-2 ring-black/20"
                    style={{ backgroundColor: color }} />
 
+              {/* Direction arrow toward the answer (omitted for the correct guess) */}
+              {!g.isCorrect && typeof g.bearing === 'number' && (
+                <DirectionArrow
+                  bearing={g.bearing}
+                  color={color}
+                  title={`Answer lies to the ${compass(g.bearing)}`}
+                />
+              )}
+
               {/* Country name */}
-              <span className="flex-1 font-semibold text-slate-100 text-sm">{g.country.name}</span>
+              <span className="flex-1 font-semibold text-sm" style={{ color: 'var(--text)' }}>{g.country.name}</span>
 
               {/* Distance + label */}
               {g.isCorrect ? (
-                <span className="text-green-400 font-bold text-sm">Correct!</span>
+                <div className="text-right flex-shrink-0">
+                  <span className="text-green-400 font-bold text-sm">Correct!</span>
+                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded-md font-bold bg-green-500/20 text-green-300 tabular-nums">
+                    +{g.score ?? 0}
+                  </span>
+                </div>
               ) : (
                 <div className="text-right flex-shrink-0">
-                  <span className="text-slate-200 text-sm font-semibold tabular-nums">{fmt(g.distance)}</span>
+                  <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--text)' }}>{fmt(g.distance)}</span>
                   <span className="ml-2 text-xs px-1.5 py-0.5 rounded-md font-medium"
                         style={{ backgroundColor: `${color}22`, color }}>
                     {getLabel(g.distance)}
+                  </span>
+                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded-md font-bold bg-slate-700 text-slate-300 tabular-nums">
+                    +{g.score ?? 0}
                   </span>
                 </div>
               )}

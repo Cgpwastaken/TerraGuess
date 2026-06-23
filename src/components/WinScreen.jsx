@@ -1,4 +1,7 @@
-export default function WinScreen({ guesses, target, onPlayAgain }) {
+import RoundSummary from './RoundSummary'
+import ShareResults from './ShareResults'
+
+export default function WinScreen({ guesses, target, onPlayAgain, shareText }) {
   const count = guesses.length
 
   return (
@@ -8,10 +11,11 @@ export default function WinScreen({ guesses, target, onPlayAgain }) {
         background:
           'radial-gradient(circle at center, rgba(34,197,94,0.55) 0%, rgba(0,0,0,0.88) 70%)',
         backdropFilter: 'blur(10px)',
+        animation: 'modalFadeIn 0.45s ease both',
       }}
     >
       <div
-        className="rounded-3xl px-10 py-12 text-center max-w-lg w-full shadow-2xl"
+        className="rounded-3xl px-8 py-10 text-center max-w-lg w-full shadow-2xl max-h-[92vh] overflow-y-auto"
         style={{
           background: 'linear-gradient(160deg, #16a34a 0%, #15803d 55%, #14532d 100%)',
           border: '3px solid #4ade80',
@@ -34,7 +38,7 @@ export default function WinScreen({ guesses, target, onPlayAgain }) {
           {target?.name ?? '—'}
         </p>
 
-        <div className="bg-white/15 backdrop-blur rounded-2xl px-6 py-4 mb-8 border border-white/20">
+        <div className="bg-white/15 backdrop-blur rounded-2xl px-6 py-4 mb-5 border border-white/20">
           <p className="text-green-100 text-sm uppercase tracking-wider font-semibold mb-1">
             Solved in
           </p>
@@ -44,6 +48,13 @@ export default function WinScreen({ guesses, target, onPlayAgain }) {
             </span>
           </p>
         </div>
+
+        {/* Full round breakdown with per-guess scores + cumulative total */}
+        <div className="text-left mb-5">
+          <RoundSummary guesses={guesses} final />
+        </div>
+
+        {shareText && <ShareResults shareText={shareText} accent="#16a34a" />}
 
         <button
           onClick={onPlayAgain}

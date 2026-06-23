@@ -3,7 +3,8 @@ import { STOPS } from '../utils/colors'
 export default function InstructionsModal({ onClose }) {
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 border-2 border-slate-600 rounded-3xl p-10 max-w-2xl w-full shadow-2xl">
+      <div className="border-2 rounded-3xl p-10 max-w-2xl w-full shadow-2xl"
+           style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
 
         <div className="text-center mb-8">
           <div className="text-7xl mb-4 select-none">🌍</div>
@@ -25,14 +26,15 @@ export default function InstructionsModal({ onClose }) {
           ].map(([icon, text]) => (
             <li key={icon} className="flex gap-4 items-start">
               <span className="text-2xl leading-snug select-none flex-shrink-0">{icon}</span>
-              <span className="text-slate-300 text-base leading-relaxed">{text}</span>
+              <span className="text-base leading-relaxed" style={{ color: 'var(--text-muted)' }}>{text}</span>
             </li>
           ))}
         </ul>
 
         {/* Colour guide — uses live STOPS data */}
-        <div className="bg-slate-700/50 rounded-2xl px-5 py-4 mb-8 border border-slate-600/60">
-          <p className="text-sm text-slate-400 font-semibold uppercase tracking-wider mb-3">
+        <div className="rounded-2xl px-5 py-4 mb-8 border"
+             style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }}>
+          <p className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)' }}>
             Colour guide (distance from answer)
           </p>
           <div className="flex gap-1.5">
